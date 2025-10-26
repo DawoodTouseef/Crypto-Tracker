@@ -3,8 +3,12 @@
 import { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { TrendingUp, TrendingDown, Star } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useCurrency } from '@/lib/hooks/useCurrency';
+import { useWatchlist } from '@/lib/hooks/useWatchlist';
+import { cn } from '@/lib/utils';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -25,11 +29,14 @@ ChartJS.register(
   Filler
 );
 
-export default function CryptoCard({ crypto }) {
+export default function CryptoCard({ crypto, onClick }) {
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { formatPrice, currency } = useCurrency();
+  const { isInWatchlist, toggleWatchlist } = useWatchlist();
+  const [priceGlow, setPriceGlow] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -54,16 +61,25 @@ export default function CryptoCard({ crypto }) {
     fetchChartData();
   }, [crypto.id]);
 
+  // Trigger price glow effect on price change
+  useEffect(() => {
+    setPriceGlow(true);
+    const timer = setTimeout(() => setPriceGlow(false), 1000);
+    return () => clearTimeout(timer);
+  }, [crypto.current_price]);
+
   const isPositive = crypto.price_change_percentage_24h >= 0;
   const changeColor = isPositive ? 'text-green-500' : 'text-red-500';
   const bgColor = isPositive ? 'bg-green-500/10' : 'bg-red-500/10';
+  const glowColor = isPositive ? 'shadow-green-500/50' : 'shadow-red-500/50';
+  const inWatchlist = mounted && isInWatchlist(crypto.id);
 
   // Format large numbers
   const formatNumber = (num) => {
-    if (num >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
-    if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
-    if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
-    return `$${num.toLocaleString()}`;
+    if (num >= 1e12) return `${(num / 1e12).toFixed(2)}T`;
+    if (num >= 1e9) return `${(num / 1e9).toFixed(2)}B`;
+    if (num >= 1e6) return `${(num / 1e6).toFixed(2)}M`;
+    return num.toLocaleString();
   };
 
   // Chart configuration
@@ -130,8 +146,16 @@ export default function CryptoCard({ crypto }) {
 
   const chartConfig = getChartData();
 
+  const handleWatchlistToggle = (e) => {
+    e.stopPropagation();
+    toggleWatchlist(crypto.id);
+  };
+
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <Card 
+      className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group"
+      onClick={onClick}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -151,24 +175,49 @@ export default function CryptoCard({ crypto }) {
             </div>
           </div>
           
-          <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${bgColor}`}>
-            {isPositive ? (
-              <TrendingUp className="h-4 w-4 text-green-500" />
-            ) : (
-              <TrendingDown className="h-4 w-4 text-red-500" />
+          <div className="flex items-center gap-2">
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${bgColor}`}>
+              {isPositive ? (
+                <TrendingUp className="h-4 w-4 text-green-500" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-red-500" />
+              )}
+              <span className={`text-sm font-semibold ${changeColor}`}>
+                {crypto.price_change_percentage_24h?.toFixed(2)}%
+              </span>
+            </div>
+            
+            {mounted && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={handleWatchlistToggle}
+              >
+                <Star
+                  className={cn(
+                    'h-4 w-4 transition-colors',
+                    inWatchlist
+                      ? 'fill-yellow-400 text-yellow-400'
+                      : 'text-muted-foreground hover:text-yellow-400'
+                  )}
+                />
+              </Button>
             )}
-            <span className={`text-sm font-semibold ${changeColor}`}>
-              {crypto.price_change_percentage_24h?.toFixed(2)}%
-            </span>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Price */}
+        {/* Price with glow effect */}
         <div>
-          <p className="text-3xl font-bold">
-            ${crypto.current_price?.toLocaleString()}
+          <p
+            className={cn(
+              'text-3xl font-bold transition-all duration-300',
+              priceGlow && `shadow-lg ${glowColor}`
+            )}
+          >
+            {mounted ? formatPrice(crypto.current_price) : `$${crypto.current_price?.toLocaleString()}`}
           </p>
         </div>
 
@@ -190,13 +239,13 @@ export default function CryptoCard({ crypto }) {
           <div>
             <p className="text-xs text-muted-foreground mb-1">Market Cap</p>
             <p className="text-sm font-semibold">
-              {formatNumber(crypto.market_cap)}
+              {currency}${formatNumber(crypto.market_cap)}
             </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-1">24h Volume</p>
             <p className="text-sm font-semibold">
-              {formatNumber(crypto.total_volume)}
+              {currency}${formatNumber(crypto.total_volume)}
             </p>
           </div>
         </div>
