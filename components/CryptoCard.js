@@ -30,12 +30,13 @@ ChartJS.register(
   Filler
 );
 
-export default function CryptoCard({ crypto, onClick }) {
+export default function CryptoCard({ crypto }) {
+  const router = useRouter();
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const { formatPrice, currency } = useCurrency();
+  const { formatPrice, formatLargeNumber } = useCurrency();
   const { isInWatchlist, toggleWatchlist } = useWatchlist();
   const [priceGlow, setPriceGlow] = useState(false);
 
