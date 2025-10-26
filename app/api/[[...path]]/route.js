@@ -1,104 +1,86 @@
-import { MongoClient } from 'mongodb'
-import { v4 as uuidv4 } from 'uuid'
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 
-// MongoDB connection
-let client
-let db
+// In-memory cache for API responses
+const cache = new Map();
+const CACHE_DURATION = 60000; // 60 seconds
 
-async function connectToMongo() {
-  if (!client) {
-    client = new MongoClient(process.env.MONGO_URL)
-    await client.connect()
-    db = client.db(process.env.DB_NAME)
+// Helper function to fetch with caching
+async function fetchWithCache(url, cacheKey) {
+  const now = Date.now();
+  const cached = cache.get(cacheKey);
+  
+  if (cached && now - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
   }
-  return db
+  
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.statusText}`);
+  }
+  
+  const data = await response.json();
+  cache.set(cacheKey, { data, timestamp: now });
+  
+  return data;
 }
 
-// Helper function to handle CORS
-function handleCORS(response) {
-  response.headers.set('Access-Control-Allow-Origin', process.env.CORS_ORIGINS || '*')
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  response.headers.set('Access-Control-Allow-Credentials', 'true')
-  return response
-}
-
-// OPTIONS handler for CORS
-export async function OPTIONS() {
-  return handleCORS(new NextResponse(null, { status: 200 }))
-}
-
-// Route handler function
-async function handleRoute(request, { params }) {
-  const { path = [] } = params
-  const route = `/${path.join('/')}`
-  const method = request.method
-
+export async function GET(request) {
+  const { pathname, searchParams } = new URL(request.url);
+  
   try {
-    const db = await connectToMongo()
-
-    // Root endpoint - GET /api/root (since /api/ is not accessible with catch-all)
-    if (route === '/root' && method === 'GET') {
-      return handleCORS(NextResponse.json({ message: "Hello World" }))
-    }
-    // Root endpoint - GET /api/root (since /api/ is not accessible with catch-all)
-    if (route === '/' && method === 'GET') {
-      return handleCORS(NextResponse.json({ message: "Hello World" }))
-    }
-
-    // Status endpoints - POST /api/status
-    if (route === '/status' && method === 'POST') {
-      const body = await request.json()
+    // Get crypto market data
+    if (pathname.includes('/api/crypto/markets')) {
+      const limit = searchParams.get('limit') || '50';
+      const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=24h`;
       
-      if (!body.client_name) {
-        return handleCORS(NextResponse.json(
-          { error: "client_name is required" }, 
+      const data = await fetchWithCache(url, `markets_${limit}`);
+      
+      return NextResponse.json(data, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+        },
+      });
+    }
+    
+    // Get 7-day chart data for a specific coin
+    if (pathname.includes('/api/crypto/chart/')) {
+      const coinId = pathname.split('/api/crypto/chart/')[1];
+      
+      if (!coinId) {
+        return NextResponse.json(
+          { error: 'Coin ID is required' },
           { status: 400 }
-        ))
+        );
       }
-
-      const statusObj = {
-        id: uuidv4(),
-        client_name: body.client_name,
-        timestamp: new Date()
-      }
-
-      await db.collection('status_checks').insertOne(statusObj)
-      return handleCORS(NextResponse.json(statusObj))
-    }
-
-    // Status endpoints - GET /api/status
-    if (route === '/status' && method === 'GET') {
-      const statusChecks = await db.collection('status_checks')
-        .find({})
-        .limit(1000)
-        .toArray()
-
-      // Remove MongoDB's _id field from response
-      const cleanedStatusChecks = statusChecks.map(({ _id, ...rest }) => rest)
       
-      return handleCORS(NextResponse.json(cleanedStatusChecks))
+      const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=7&interval=daily`;
+      
+      const data = await fetchWithCache(url, `chart_${coinId}`);
+      
+      // Transform data for easier use
+      const prices = data.prices.map(([timestamp, price]) => ({
+        timestamp,
+        price,
+      }));
+      
+      return NextResponse.json(prices, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+        },
+      });
     }
-
-    // Route not found
-    return handleCORS(NextResponse.json(
-      { error: `Route ${route} not found` }, 
-      { status: 404 }
-    ))
-
+    
+    // Default response
+    return NextResponse.json(
+      { message: 'Crypto Price Tracker API' },
+      { status: 200 }
+    );
+    
   } catch (error) {
-    console.error('API Error:', error)
-    return handleCORS(NextResponse.json(
-      { error: "Internal server error" }, 
+    console.error('API Error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Internal server error' },
       { status: 500 }
-    ))
+    );
   }
 }
-
-// Export all HTTP methods
-export const GET = handleRoute
-export const POST = handleRoute
-export const PUT = handleRoute
-export const DELETE = handleRoute
-export const PATCH = handleRoute
