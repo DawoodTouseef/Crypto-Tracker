@@ -1,0 +1,172 @@
+{
+  "bitcoin": {
+    "id": "bitcoin",
+    "symbol": "btc",
+    "name": "Bitcoin",
+    "image": {
+      "large": "https://coin-images.coingecko.com/coins/images/1/large/bitcoin.png"
+    },
+    "description": {
+      "en": "Bitcoin is the first successful internet money based on peer-to-peer technology; whereby no central bank or authority is involved in the transaction and production of the Bitcoin currency. It was created by an anonymous individual/group under the name, Satoshi Nakamoto. The source code is available publicly as an open source project, anybody can look at it and be part of the developmental process. Bitcoin is changing the way we see money as we speak. The idea was to produce a means of exchange, independent of any central authority, that could be transferred electronically in a secure, verifiable and immutable way."
+    },
+    "market_data": {
+      "current_price": {
+        "usd": 67234.50
+      },
+      "market_cap": {
+        "usd": 1324567890123
+      },
+      "total_volume": {
+        "usd": 28456789012
+      },
+      "high_24h": {
+        "usd": 68500
+      },
+      "low_24h": {
+        "usd": 66000
+      },
+      "price_change_24h": 1234.50,
+      "price_change_percentage_24h": 2.45,
+      "price_change_percentage_7d": 5.23,
+      "price_change_percentage_30d": 12.45,
+      "price_change_percentage_1y": 145.67,
+      "market_cap_rank": 1,
+      "circulating_supply": 19000000,
+      "total_supply": 21000000,
+      "max_supply": 21000000,
+      "ath": {
+        "usd": 69045
+      },
+      "ath_change_percentage": {
+        "usd": -2.62
+      },
+      "ath_date": {
+        "usd": "2021-11-10T14:24:11.849Z"
+      },
+      "atl": {
+        "usd": 67.81
+      },
+      "atl_change_percentage": {
+        "usd": 99088.24
+      },
+      "atl_date": {
+        "usd": "2013-07-06T00:00:00.000Z"
+      },
+      "roi": null
+    },
+    "community_data": {
+      "twitter_followers": 5800000,
+      "reddit_subscribers": 4500000,
+      "reddit_average_posts_48h": 15,
+      "reddit_average_comments_48h": 450
+    },
+    "developer_data": {
+      "forks": 35000,
+      "stars": 70000,
+      "subscribers": 4000,
+      "total_issues": 7500,
+      "closed_issues": 7200,
+      "pull_requests_merged": 10000,
+      "pull_request_contributors": 850
+    },
+    "links": {
+      "homepage": ["https://bitcoin.org/"],
+      "blockchain_site": [
+        "https://blockchair.com/bitcoin/",
+        "https://blockchain.coinmarketcap.com/chain/bitcoin"
+      ],
+      "official_forum_url": ["https://bitcointalk.org/"],
+      "repos_url": {
+        "github": ["https://github.com/bitcoin/bitcoin"]
+      },
+      "whitepaper": "https://bitcoin.org/bitcoin.pdf"
+    }
+  },
+  "ethereum": {
+    "id": "ethereum",
+    "symbol": "eth",
+    "name": "Ethereum",
+    "image": {
+      "large": "https://coin-images.coingecko.com/coins/images/279/large/ethereum.png"
+    },
+    "description": {
+      "en": "Ethereum is a decentralized open-source blockchain system that features its own cryptocurrency, Ether. ETH works as a platform for numerous other cryptocurrencies, as well as for the execution of decentralized smart contracts. Ethereum was first described in a 2013 whitepaper by Vitalik Buterin."
+    },
+    "market_data": {
+      "current_price": {
+        "usd": 3456.78
+      },
+      "market_cap": {
+        "usd": 415678901234
+      },
+      "total_volume": {
+        "usd": 15678901234
+      },
+      "high_24h": {
+        "usd": 3500
+      },
+      "low_24h": {
+        "usd": 3400
+      },
+      "price_change_24h": 42.50,
+      "price_change_percentage_24h": 1.23,
+      "price_change_percentage_7d": 3.45,
+      "price_change_percentage_30d": 8.90,
+      "price_change_percentage_1y": 85.23,
+      "market_cap_rank": 2,
+      "circulating_supply": 120000000,
+      "total_supply": 120000000,
+      "max_supply": null,
+      "ath": {
+        "usd": 4878.26
+      },
+      "ath_change_percentage": {
+        "usd": -29.13
+      },
+      "ath_date": {
+        "usd": "2021-11-10T14:24:19.604Z"
+      },
+      "atl": {
+        "usd": 0.432979
+      },
+      "atl_change_percentage": {
+        "usd": 798345.12
+      },
+      "atl_date": {
+        "usd": "2015-10-20T00:00:00.000Z"
+      },
+      "roi": {
+        "times": 89.23,
+        "currency": "usd",
+        "percentage": 8923.45
+      }
+    },
+    "community_data": {
+      "twitter_followers": 3200000,
+      "reddit_subscribers": 1800000,
+      "reddit_average_posts_48h": 12,
+      "reddit_average_comments_48h": 380
+    },
+    "developer_data": {
+      "forks": 28000,
+      "stars": 45000,
+      "subscribers": 3500,
+      "total_issues": 5500,
+      "closed_issues": 5200,
+      "pull_requests_merged": 8500,
+      "pull_request_contributors": 750
+    },
+    "links": {
+      "homepage": ["https://ethereum.org/"],
+      "blockchain_site": [
+        "https://etherscan.io/",
+        "https://ethplorer.io/"
+      ],
+      "official_forum_url": ["https://forum.ethereum.org/"],
+      "repos_url": {
+        "github": ["https://github.com/ethereum/go-ethereum"]
+      },
+      "whitepaper": "https://ethereum.org/en/whitepaper/"
+    }
+  }
+}
