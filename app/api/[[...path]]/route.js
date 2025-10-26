@@ -250,6 +250,95 @@ export async function GET(request) {
       return NextResponse.json({ data: [] });
     }
     
+    // Get detailed coin information
+    if (pathname.includes('/api/crypto/coin/')) {
+      const coinId = pathname.split('/api/crypto/coin/')[1]?.split('?')[0];
+      
+      if (!coinId) {
+        return NextResponse.json(
+          { error: 'Coin ID is required' },
+          { status: 400 }
+        );
+      }
+      
+      try {
+        const cached = cache.get(`coin_${coinId}`);
+        const now = Date.now();
+        
+        if (cached && now - cached.timestamp < CACHE_DURATION) {
+          return NextResponse.json({ 
+            ...cached.data,
+            isLiveData: true
+          }, {
+            headers: {
+              'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
+            },
+          });
+        }
+        
+        const url = `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&community_data=true&developer_data=true`;
+        
+        const response = await fetch(url, {
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          cache.set(`coin_${coinId}`, { data, timestamp: now });
+          
+          return NextResponse.json({ 
+            ...data,
+            isLiveData: true
+          }, {
+            headers: {
+              'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
+            },
+          });
+        } else {
+          // Fallback to mock data
+          const mockDetails = await loadMockCoinDetails();
+          if (mockDetails && mockDetails[coinId]) {
+            return NextResponse.json({ 
+              ...mockDetails[coinId],
+              isLiveData: false,
+              isMockData: true,
+              message: 'Live data temporarily unavailable. Showing cached mock data.'
+            }, {
+              headers: {
+                'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
+              },
+            });
+          }
+          
+          throw new Error('Coin not found');
+        }
+      } catch (error) {
+        console.error(`Error fetching coin details for ${coinId}:`, error);
+        
+        // Try mock data as last resort
+        const mockDetails = await loadMockCoinDetails();
+        if (mockDetails && mockDetails[coinId]) {
+          return NextResponse.json({ 
+            ...mockDetails[coinId],
+            isLiveData: false,
+            isMockData: true,
+            message: 'Live data temporarily unavailable. Showing cached mock data.'
+          }, {
+            headers: {
+              'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
+            },
+          });
+        }
+        
+        return NextResponse.json(
+          { error: 'Coin details not found' },
+          { status: 404 }
+        );
+      }
+    }
+    
     // Get 7-day chart data for a specific coin
     if (pathname.includes('/api/crypto/chart/')) {
       const coinId = pathname.split('/api/crypto/chart/')[1];
