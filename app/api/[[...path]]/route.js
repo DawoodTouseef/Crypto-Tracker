@@ -4,24 +4,45 @@ import { NextResponse } from 'next/server';
 const cache = new Map();
 const CACHE_DURATION = 60000; // 60 seconds
 
-// Helper function to fetch with caching
+// Helper function to fetch with caching and retry logic
 async function fetchWithCache(url, cacheKey) {
   const now = Date.now();
   const cached = cache.get(cacheKey);
   
+  // Return cached data if available and fresh
   if (cached && now - cached.timestamp < CACHE_DURATION) {
     return cached.data;
   }
   
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`API request failed: ${response.statusText}`);
+  // If we have stale cached data and API fails, return stale data
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      // If rate limited or error, return stale cache if available
+      if (cached) {
+        console.warn(`API error (${response.status}), using stale cache for ${cacheKey}`);
+        return cached.data;
+      }
+      throw new Error(`API request failed: ${response.statusText} (${response.status})`);
+    }
+    
+    const data = await response.json();
+    cache.set(cacheKey, { data, timestamp: now });
+    
+    return data;
+  } catch (error) {
+    // If network error and we have stale cache, use it
+    if (cached) {
+      console.warn(`Network error, using stale cache for ${cacheKey}`);
+      return cached.data;
+    }
+    throw error;
   }
-  
-  const data = await response.json();
-  cache.set(cacheKey, { data, timestamp: now });
-  
-  return data;
 }
 
 export async function GET(request) {
