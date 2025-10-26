@@ -272,7 +272,39 @@ export async function GET(request) {
         
         if (response.ok) {
           const data = await response.json();
-          const globalData = data.data || {};\n          \n          const formattedData = {\n            total_market_cap: globalData.total_market_cap?.usd || 0,\n            total_volume: globalData.total_volume?.usd || 0,\n            btc_dominance: globalData.market_cap_percentage?.btc || 0,\n            eth_dominance: globalData.market_cap_percentage?.eth || 0,\n            active_cryptocurrencies: globalData.active_cryptocurrencies || 0,\n            markets: globalData.markets || 0,\n            market_cap_change_24h: globalData.market_cap_change_percentage_24h_usd || 0,\n          };\n          \n          cache.set('global_data', { data: formattedData, timestamp: now });\n          \n          return NextResponse.json(formattedData, {\n            headers: {\n              'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',\n            },\n          });\n        }\n      } catch (error) {\n        console.error('Error fetching global data:', error);\n      }\n      \n      // Fallback to mock data\n      return NextResponse.json({\n        total_market_cap: 2850000000000,\n        total_volume: 125000000000,\n        btc_dominance: 48.5,\n        eth_dominance: 17.2,\n        active_cryptocurrencies: 13500,\n        market_cap_change_24h: 2.3,\n      });\n    }
+          const globalData = data.data || {};
+          
+          const formattedData = {
+            total_market_cap: globalData.total_market_cap?.usd || 0,
+            total_volume: globalData.total_volume?.usd || 0,
+            btc_dominance: globalData.market_cap_percentage?.btc || 0,
+            eth_dominance: globalData.market_cap_percentage?.eth || 0,
+            active_cryptocurrencies: globalData.active_cryptocurrencies || 0,
+            markets: globalData.markets || 0,
+            market_cap_change_24h: globalData.market_cap_change_percentage_24h_usd || 0,
+          };
+          
+          cache.set('global_data', { data: formattedData, timestamp: now });
+          
+          return NextResponse.json(formattedData, {
+            headers: {
+              'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching global data:', error);
+      }
+      
+      return NextResponse.json({
+        total_market_cap: 2850000000000,
+        total_volume: 125000000000,
+        btc_dominance: 48.5,
+        eth_dominance: 17.2,
+        active_cryptocurrencies: 13500,
+        market_cap_change_24h: 2.3,
+      });
+    }
     
     // Get trending coins
     if (pathname.includes('/api/crypto/trending')) {
