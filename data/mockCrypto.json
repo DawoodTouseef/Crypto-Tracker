@@ -1,0 +1,176 @@
+{
+  "coins": [
+    {
+      "id": "bitcoin",
+      "symbol": "btc",
+      "name": "Bitcoin",
+      "image": "https://coin-images.coingecko.com/coins/images/1/large/bitcoin.png",
+      "current_price": 67234.50,
+      "market_cap": 1324567890123,
+      "total_volume": 28456789012,
+      "price_change_percentage_24h": 2.45,
+      "high_24h": 68500,
+      "low_24h": 66000,
+      "circulating_supply": 19000000
+    },
+    {
+      "id": "ethereum",
+      "symbol": "eth",
+      "name": "Ethereum",
+      "image": "https://coin-images.coingecko.com/coins/images/279/large/ethereum.png",
+      "current_price": 3456.78,
+      "market_cap": 415678901234,
+      "total_volume": 15678901234,
+      "price_change_percentage_24h": 1.23,
+      "high_24h": 3500,
+      "low_24h": 3400,
+      "circulating_supply": 120000000
+    },
+    {
+      "id": "binancecoin",
+      "symbol": "bnb",
+      "name": "BNB",
+      "image": "https://coin-images.coingecko.com/coins/images/825/large/bnb-icon2_2x.png",
+      "current_price": 589.45,
+      "market_cap": 87654321098,
+      "total_volume": 1234567890,
+      "price_change_percentage_24h": -0.85,
+      "high_24h": 595,
+      "low_24h": 585,
+      "circulating_supply": 148000000
+    },
+    {
+      "id": "solana",
+      "symbol": "sol",
+      "name": "Solana",
+      "image": "https://coin-images.coingecko.com/coins/images/4128/large/solana.png",
+      "current_price": 145.67,
+      "market_cap": 65432109876,
+      "total_volume": 2345678901,
+      "price_change_percentage_24h": 5.67,
+      "high_24h": 150,
+      "low_24h": 140,
+      "circulating_supply": 449000000
+    },
+    {
+      "id": "ripple",
+      "symbol": "xrp",
+      "name": "XRP",
+      "image": "https://coin-images.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
+      "current_price": 0.5234,
+      "market_cap": 28765432109,
+      "total_volume": 987654321,
+      "price_change_percentage_24h": -1.23,
+      "high_24h": 0.53,
+      "low_24h": 0.51,
+      "circulating_supply": 54900000000
+    },
+    {
+      "id": "cardano",
+      "symbol": "ada",
+      "name": "Cardano",
+      "image": "https://coin-images.coingecko.com/coins/images/975/large/cardano.png",
+      "current_price": 0.4567,
+      "market_cap": 16234567890,
+      "total_volume": 456789012,
+      "price_change_percentage_24h": 3.45,
+      "high_24h": 0.47,
+      "low_24h": 0.44,
+      "circulating_supply": 35500000000
+    },
+    {
+      "id": "dogecoin",
+      "symbol": "doge",
+      "name": "Dogecoin",
+      "image": "https://coin-images.coingecko.com/coins/images/5/large/dogecoin.png",
+      "current_price": 0.0834,
+      "market_cap": 12098765432,
+      "total_volume": 678901234,
+      "price_change_percentage_24h": 8.90,
+      "high_24h": 0.09,
+      "low_24h": 0.08,
+      "circulating_supply": 145000000000
+    },
+    {
+      "id": "tron",
+      "symbol": "trx",
+      "name": "TRON",
+      "image": "https://coin-images.coingecko.com/coins/images/1094/large/tron-logo.png",
+      "current_price": 0.1234,
+      "market_cap": 10876543210,
+      "total_volume": 345678901,
+      "price_change_percentage_24h": -2.34,
+      "high_24h": 0.13,
+      "low_24h": 0.12,
+      "circulating_supply": 88100000000
+    },
+    {
+      "id": "polkadot",
+      "symbol": "dot",
+      "name": "Polkadot",
+      "image": "https://coin-images.coingecko.com/coins/images/12171/large/polkadot.png",
+      "current_price": 7.89,
+      "market_cap": 9876543210,
+      "total_volume": 234567890,
+      "price_change_percentage_24h": 1.56,
+      "high_24h": 8.0,
+      "low_24h": 7.7,
+      "circulating_supply": 1250000000
+    },
+    {
+      "id": "polygon",
+      "symbol": "matic",
+      "name": "Polygon",
+      "image": "https://coin-images.coingecko.com/coins/images/4713/large/polygon.png",
+      "current_price": 0.8765,
+      "market_cap": 8234567890,
+      "total_volume": 456789012,
+      "price_change_percentage_24h": -3.21,
+      "high_24h": 0.90,
+      "low_24h": 0.85,
+      "circulating_supply": 9390000000
+    }
+  ],
+  "news": [
+    {
+      "id": 1,
+      "title": "Bitcoin Reaches New All-Time High",
+      "description": "Bitcoin surpasses $70,000 mark as institutional adoption continues to grow.",
+      "source": "CryptoNews",
+      "published_at": "2025-01-25T10:30:00Z",
+      "url": "#"
+    },
+    {
+      "id": 2,
+      "title": "Ethereum 2.0 Upgrade Shows Promising Results",
+      "description": "Network throughput increases by 40% following recent protocol improvements.",
+      "source": "BlockchainToday",
+      "published_at": "2025-01-25T09:15:00Z",
+      "url": "#"
+    },
+    {
+      "id": 3,
+      "title": "Major Bank Announces Crypto Custody Service",
+      "description": "Traditional finance continues to embrace digital assets with new custody solutions.",
+      "source": "FinanceDaily",
+      "published_at": "2025-01-25T08:00:00Z",
+      "url": "#"
+    },
+    {
+      "id": 4,
+      "title": "DeFi Total Value Locked Surpasses $200B",
+      "description": "Decentralized finance ecosystem continues rapid growth trajectory.",
+      "source": "DeFiInsider",
+      "published_at": "2025-01-24T18:45:00Z",
+      "url": "#"
+    },
+    {
+      "id": 5,
+      "title": "Regulatory Clarity Boosts Market Sentiment",
+      "description": "New guidelines provide clearer framework for crypto operations.",
+      "source": "RegulatoryWatch",
+      "published_at": "2025-01-24T16:20:00Z",
+      "url": "#"
+    }
+  ]
+}
