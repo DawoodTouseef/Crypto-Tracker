@@ -239,13 +239,13 @@ export default function CryptoCard({ crypto }) {
           <div>
             <p className="text-xs text-muted-foreground mb-1">Market Cap</p>
             <p className="text-sm font-semibold">
-              {currency}${formatNumber(crypto.market_cap)}
+              {formatLargeNumber(crypto.market_cap)}
             </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-1">24h Volume</p>
             <p className="text-sm font-semibold">
-              {currency}${formatNumber(crypto.total_volume)}
+              {formatLargeNumber(crypto.total_volume)}
             </p>
           </div>
         </div>
