@@ -18,6 +18,18 @@ async function loadMockData() {
   }
 }
 
+// Load mock coin details
+async function loadMockCoinDetails() {
+  try {
+    const filePath = path.join(process.cwd(), 'data', 'mockCoinDetails.json');
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(fileContents);
+  } catch (error) {
+    console.error('Error loading mock coin details:', error);
+    return null;
+  }
+}
+
 // Demo/fallback data for when API is rate-limited
 const DEMO_DATA = [
   {
