@@ -147,6 +147,10 @@ export default function CryptoCard({ crypto }) {
     toggleWatchlist(crypto.id);
   };
 
+  const handleCardClick = () => {
+    router.push(`/coin/${crypto.id}`);
+  };
+
   return (
     <Card 
       className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group"
