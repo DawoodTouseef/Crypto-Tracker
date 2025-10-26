@@ -1,8 +1,22 @@
 import { NextResponse } from 'next/server';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 // In-memory cache for API responses
 const cache = new Map();
 const CACHE_DURATION = 300000; // 5 minutes (extended to reduce API calls)
+
+// Load mock data
+async function loadMockData() {
+  try {
+    const filePath = path.join(process.cwd(), 'data', 'mockCrypto.json');
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(fileContents);
+  } catch (error) {
+    console.error('Error loading mock data:', error);
+    return null;
+  }
+}
 
 // Demo/fallback data for when API is rate-limited
 const DEMO_DATA = [
