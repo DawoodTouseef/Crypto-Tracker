@@ -321,7 +321,32 @@ export async function GET(request) {
         }
         
         // Use top gainers from markets as trending
-        const marketsResponse = await fetch(\n          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h'\n        );\n        \n        if (marketsResponse.ok) {\n          const data = await marketsResponse.json();\n          // Sort by 24h change and take top performers\n          const trending = data\n            .filter(coin => coin.price_change_percentage_24h > 0)\n            .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)\n            .slice(0, 10);\n          \n          const result = { data: trending };\n          cache.set('trending_coins', { data: result, timestamp: now });\n          \n          return NextResponse.json(result, {\n            headers: {\n              'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',\n            },\n          });\n        }\n      } catch (error) {\n        console.error('Error fetching trending:', error);\n      }\n      \n      return NextResponse.json({ data: [] });\n    }
+        const marketsResponse = await fetch(
+          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h'
+        );
+        
+        if (marketsResponse.ok) {
+          const data = await marketsResponse.json();
+          const trending = data
+            .filter(coin => coin.price_change_percentage_24h > 0)
+            .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
+            .slice(0, 10);
+          
+          const result = { data: trending };
+          cache.set('trending_coins', { data: result, timestamp: now });
+          
+          return NextResponse.json(result, {
+            headers: {
+              'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching trending:', error);
+      }
+      
+      return NextResponse.json({ data: [] });
+    }
     
     // Get detailed coin information
     if (pathname.includes('/api/crypto/coin/')) {
