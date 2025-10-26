@@ -184,13 +184,58 @@ export async function GET(request) {
       const limit = searchParams.get('limit') || '50';
       const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=24h`;
       
-      const data = await fetchWithCache(url, `markets_${limit}`, limit);
+      try {
+        const data = await fetchWithCache(url, `markets_${limit}`, limit);
+        
+        return NextResponse.json({ 
+          data, 
+          isLiveData: true,
+          timestamp: new Date().toISOString()
+        }, {
+          headers: {
+            'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
+          },
+        });
+      } catch (error) {
+        // Fallback to mock data
+        console.warn('API failed, loading mock data:', error.message);
+        const mockData = await loadMockData();
+        
+        if (mockData && mockData.coins) {
+          const limitNum = parseInt(limit);
+          return NextResponse.json({ 
+            data: mockData.coins.slice(0, limitNum),
+            isLiveData: false,
+            isMockData: true,
+            message: 'Live data temporarily unavailable. Showing mock data.',
+            timestamp: new Date().toISOString()
+          }, {
+            headers: {
+              'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
+            },
+          });
+        }
+        
+        throw error;
+      }
+    }
+    
+    // Get crypto news
+    if (pathname.includes('/api/crypto/news')) {
+      const mockData = await loadMockData();
       
-      return NextResponse.json(data, {
-        headers: {
-          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
-        },
-      });
+      if (mockData && mockData.news) {
+        return NextResponse.json({ 
+          data: mockData.news,
+          timestamp: new Date().toISOString()
+        }, {
+          headers: {
+            'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=120',
+          },
+        });
+      }
+      
+      return NextResponse.json({ data: [] });
     }
     
     // Get 7-day chart data for a specific coin
