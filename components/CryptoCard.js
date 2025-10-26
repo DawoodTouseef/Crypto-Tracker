@@ -154,7 +154,7 @@ export default function CryptoCard({ crypto }) {
   return (
     <Card 
       className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group"
-      onClick={onClick}
+      onClick={handleCardClick}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
