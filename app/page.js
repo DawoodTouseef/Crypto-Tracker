@@ -2,14 +2,21 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, Search, TrendingUp, TrendingDown, Moon, Sun } from 'lucide-react';
+import { RefreshCw, Search, TrendingUp, TrendingDown, Moon, Sun, AlertCircle } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { toast, Toaster } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import CryptoCard from '@/components/CryptoCard';
+import Sidebar from '@/components/Sidebar';
+import NewsSection from '@/components/NewsSection';
+import SettingsView from '@/components/SettingsView';
+import { useWatchlist } from '@/lib/hooks/useWatchlist';
+import { useCurrency } from '@/lib/hooks/useCurrency';
 
 export default function App() {
   const [cryptos, setCryptos] = useState([]);
@@ -21,15 +28,18 @@ export default function App() {
   const [limit, setLimit] = useState('50');
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(null);
+  const [currentView, setCurrentView] = useState('home');
+  const [news, setNews] = useState([]);
+  const [isLiveData, setIsLiveData] = useState(true);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { watchlist } = useWatchlist();
+  const { currency } = useCurrency();
 
-  // Handle theme mounting
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Fetch crypto data
   const fetchCryptos = useCallback(async (showRefreshing = false) => {
     try {
       if (showRefreshing) setRefreshing(true);
@@ -43,24 +53,48 @@ export default function App() {
         throw new Error('Failed to fetch cryptocurrency data');
       }
       
-      const data = await response.json();
-      setCryptos(data);
+      const result = await response.json();
+      
+      if (result.isMockData) {
+        setIsLiveData(false);
+        toast.warning('Live data temporarily unavailable. Showing mock data.', {
+          duration: 5000,
+        });
+      } else {
+        setIsLiveData(true);
+      }
+      
+      setCryptos(result.data || result);
       setLastRefresh(new Date());
     } catch (err) {
       setError(err.message);
       console.error('Error fetching cryptos:', err);
+      toast.error('Failed to fetch cryptocurrency data', {
+        description: err.message,
+      });
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, [limit]);
 
-  // Initial fetch
+  const fetchNews = useCallback(async () => {
+    try {
+      const response = await fetch('/api/crypto/news');
+      if (response.ok) {
+        const result = await response.json();
+        setNews(result.data || []);
+      }
+    } catch (err) {
+      console.error('Error fetching news:', err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchCryptos();
-  }, [fetchCryptos]);
+    fetchNews();
+  }, [fetchCryptos, fetchNews]);
 
-  // Auto-refresh every 60 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       fetchCryptos(true);
@@ -69,41 +103,44 @@ export default function App() {
     return () => clearInterval(interval);
   }, [fetchCryptos]);
 
-  // Filter and sort cryptos
   useEffect(() => {
     let result = [...cryptos];
 
-    // Search filter
-    if (searchQuery) {
-      result = result.filter(
-        (crypto) =>
-          crypto.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          crypto.symbol.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+    if (currentView === 'gainers') {
+      result = result.filter((crypto) => crypto.price_change_percentage_24h > 0);
+      result.sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
+    } else if (currentView === 'watchlist') {
+      result = result.filter((crypto) => watchlist.includes(crypto.id));
+    } else {
+      if (searchQuery) {
+        result = result.filter(
+          (crypto) =>
+            crypto.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            crypto.symbol.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
+
+      result.sort((a, b) => {
+        if (sortBy === 'price') {
+          return b.current_price - a.current_price;
+        } else if (sortBy === 'change') {
+          return (b.price_change_percentage_24h || 0) - (a.price_change_percentage_24h || 0);
+        } else {
+          return b.market_cap - a.market_cap;
+        }
+      });
     }
 
-    // Sort
-    result.sort((a, b) => {
-      if (sortBy === 'price') {
-        return b.current_price - a.current_price;
-      } else if (sortBy === 'change') {
-        return (b.price_change_percentage_24h || 0) - (a.price_change_percentage_24h || 0);
-      } else {
-        return b.market_cap - a.market_cap;
-      }
-    });
-
     setFilteredCryptos(result);
-  }, [cryptos, searchQuery, sortBy]);
+  }, [cryptos, searchQuery, sortBy, currentView, watchlist]);
 
-  // Manual refresh with debounce
   const handleManualRefresh = () => {
     if (!refreshing && !loading) {
       fetchCryptos(true);
+      toast.success('Refreshing data...');
     }
   };
 
-  // Loading skeletons
   const LoadingSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {[...Array(6)].map((_, i) => (
@@ -126,49 +163,17 @@ export default function App() {
     </div>
   );
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-primary rounded-lg p-2">
-                <TrendingUp className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Crypto Price Tracker</h1>
-                <p className="text-sm text-muted-foreground">Real-time cryptocurrency dashboard</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              {lastRefresh && (
-                <span className="text-xs text-muted-foreground hidden sm:inline">
-                  Last updated: {lastRefresh.toLocaleTimeString()}
-                </span>
-              )}
-              {mounted && (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                >
-                  {theme === 'dark' ? (
-                    <Sun className="h-5 w-5" />
-                  ) : (
-                    <Moon className="h-5 w-5" />
-                  )}
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+  const renderContent = () => {
+    if (currentView === 'news') {
+      return <NewsSection news={news} />;
+    }
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        {/* Controls */}
+    if (currentView === 'settings') {
+      return <SettingsView />;
+    }
+
+    return (
+      <>
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -181,27 +186,31 @@ export default function App() {
             />
           </div>
           
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="market_cap">Market Cap</SelectItem>
-              <SelectItem value="price">Price (High to Low)</SelectItem>
-              <SelectItem value="change">24h Change</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={limit} onValueChange={setLimit}>
-            <SelectTrigger className="w-full sm:w-32">
-              <SelectValue placeholder="Limit" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">Top 10</SelectItem>
-              <SelectItem value="20">Top 20</SelectItem>
-              <SelectItem value="50">Top 50</SelectItem>
-            </SelectContent>
-          </Select>
+          {currentView === 'home' && (
+            <>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="market_cap">Market Cap</SelectItem>
+                  <SelectItem value="price">Price (High to Low)</SelectItem>
+                  <SelectItem value="change">24h Change</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={limit} onValueChange={setLimit}>
+                <SelectTrigger className="w-full sm:w-32">
+                  <SelectValue placeholder="Limit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">Top 10</SelectItem>
+                  <SelectItem value="20">Top 20</SelectItem>
+                  <SelectItem value="50">Top 50</SelectItem>
+                </SelectContent>
+              </Select>
+            </>
+          )}
           
           <Button
             onClick={handleManualRefresh}
@@ -214,7 +223,15 @@ export default function App() {
           </Button>
         </div>
 
-        {/* Error State */}
+        {!isLiveData && (
+          <Alert className="mb-6 border-yellow-500/50 bg-yellow-500/10">
+            <AlertCircle className="h-4 w-4 text-yellow-500" />
+            <AlertDescription className="text-yellow-700 dark:text-yellow-300">
+              Live data temporarily unavailable. Showing mock data.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {error && (
           <Card className="mb-8 border-destructive">
             <CardContent className="p-6">
@@ -229,13 +246,25 @@ export default function App() {
           </Card>
         )}
 
-        {/* Crypto Grid */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold">
+            {currentView === 'gainers' && 'Top Gainers'}
+            {currentView === 'watchlist' && `My Watchlist (${filteredCryptos.length})`}
+            {currentView === 'home' && 'All Cryptocurrencies'}
+          </h2>
+          {currentView === 'watchlist' && filteredCryptos.length === 0 && (
+            <p className="text-muted-foreground mt-2">
+              No cryptocurrencies in your watchlist. Click the star icon on any coin to add it.
+            </p>
+          )}
+        </div>
+
         {loading ? (
           <LoadingSkeleton />
         ) : (
           <AnimatePresence mode="wait">
             <motion.div
-              key={`${sortBy}-${searchQuery}-${limit}`}
+              key={`${sortBy}-${searchQuery}-${limit}-${currentView}`}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -261,14 +290,67 @@ export default function App() {
             </motion.div>
           </AnimatePresence>
         )}
-      </main>
+      </>
+    );
+  };
 
-      {/* Footer */}
-      <footer className="border-t mt-12 py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>Data provided by CoinGecko API • Auto-refreshes every 60 seconds</p>
-        </div>
-      </footer>
+  return (
+    <div className="min-h-screen bg-background flex">
+      <Toaster richColors position="top-right" />
+      
+      <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+
+      <div className="flex-1 flex flex-col min-h-screen">
+        <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-40">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-primary rounded-lg p-2">
+                  <TrendingUp className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground">Crypto Price Tracker</h1>
+                  <p className="text-sm text-muted-foreground">
+                    Real-time cryptocurrency dashboard • {currency}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {lastRefresh && (
+                  <span className="text-xs text-muted-foreground hidden sm:inline">
+                    Last updated: {lastRefresh.toLocaleTimeString()}
+                  </span>
+                )}
+                {mounted && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  >
+                    {theme === 'dark' ? (
+                      <Sun className="h-5 w-5" />
+                    ) : (
+                      <Moon className="h-5 w-5" />
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 container mx-auto px-4 py-8">
+          {renderContent()}
+        </main>
+
+        <footer className="border-t mt-auto py-6">
+          <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+            <p>Data provided by CoinGecko API • Auto-refreshes every 60 seconds</p>
+            <p className="mt-1">v2.0.0 • Enhanced Edition</p>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }
