@@ -1,37 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Line } from 'react-chartjs-2';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, TrendingDown, Star } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import { useCurrency } from '@/lib/hooks/useCurrency';
 import { useWatchlist } from '@/lib/hooks/useWatchlist';
 import { cn } from '@/lib/utils';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Filler,
-} from 'chart.js';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Filler
-);
-
-export default function CryptoCardCompact({ crypto, onClick }) {
-  const { formatPrice, formatLargeNumber, currency } = useCurrency();
+export default function CryptoCardCompact({ crypto }) {
+  const router = useRouter();
+  const { formatPrice, formatLargeNumber } = useCurrency();
   const { isInWatchlist, toggleWatchlist } = useWatchlist();
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [priceGlow, setPriceGlow] = useState(false);
 
@@ -56,14 +37,17 @@ export default function CryptoCardCompact({ crypto, onClick }) {
     toggleWatchlist(crypto.id);
   };
 
+  const handleCardClick = () => {
+    router.push(`/coin/${crypto.id}`);
+  };
+
   return (
     <Card 
       className="overflow-hidden hover:shadow-md transition-all duration-200 cursor-pointer"
-      onClick={onClick}
+      onClick={handleCardClick}
     >
       <CardContent className="p-3">
         <div className="flex items-center justify-between gap-2">
-          {/* Coin Info */}
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <img
               src={crypto.image}
@@ -79,7 +63,6 @@ export default function CryptoCardCompact({ crypto, onClick }) {
             </div>
           </div>
 
-          {/* Price & Change */}
           <div className="text-right flex-shrink-0">
             <p
               className={cn(
@@ -96,7 +79,6 @@ export default function CryptoCardCompact({ crypto, onClick }) {
             </div>
           </div>
 
-          {/* Star */}
           {mounted && (
             <Button
               variant="ghost"
@@ -116,7 +98,6 @@ export default function CryptoCardCompact({ crypto, onClick }) {
           )}
         </div>
 
-        {/* Market Cap & Volume */}
         <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t text-xs">
           <div>
             <p className="text-muted-foreground">MCap</p>
