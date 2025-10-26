@@ -76,13 +76,7 @@ export default function CryptoCard({ crypto }) {
   const glowColor = isPositive ? 'shadow-green-500/50' : 'shadow-red-500/50';
   const inWatchlist = mounted && isInWatchlist(crypto.id);
 
-  // Format large numbers
-  const formatNumber = (num) => {
-    if (num >= 1e12) return `${(num / 1e12).toFixed(2)}T`;
-    if (num >= 1e9) return `${(num / 1e9).toFixed(2)}B`;
-    if (num >= 1e6) return `${(num / 1e6).toFixed(2)}M`;
-    return num.toLocaleString();
-  };
+  // Using formatLargeNumber from useCurrency hook
 
   // Chart configuration
   const getChartOptions = () => {
