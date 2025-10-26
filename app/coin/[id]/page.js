@@ -30,7 +30,7 @@ import { useTheme } from 'next-themes';
 import { useWatchlist } from '@/lib/hooks/useWatchlist';
 import { cn } from '@/lib/utils';
 
-export default function CoinDetailPage() {
+import {\n  Chart as ChartJS,\n  CategoryScale,\n  LinearScale,\n  PointElement,\n  LineElement,\n  Tooltip,\n  Filler,\n} from 'chart.js';\n\n// Register Chart.js components\nChartJS.register(\n  CategoryScale,\n  LinearScale,\n  PointElement,\n  LineElement,\n  Tooltip,\n  Filler\n);\n\nexport default function CoinDetailPage() {
   const params = useParams();
   const router = useRouter();
   const coinId = params.id;
